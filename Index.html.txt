@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+   <link rel="manifest" href="manifest.json">
+    <title>116法律修煉 17.0：職涯藍圖</title>
+    <style id="dynamic-font">
+        :root { --main-font: 'Noto Serif TC', serif; }
+    </style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@900&family=Noto+Sans+TC:wght@400;700&family=Zhi+Mang+Xing&display=swap');
+        
+        :root { --law-red: #800000; --gold: #d4af37; --bg: #0a0a0a; --card: #151515; --text: #ffffff; }
+        
+        body { font-family: var(--main-font), 'Noto Sans TC', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        /* 導航與進度 */
+        nav { width: 100%; background: linear-gradient(to bottom, var(--law-red), #500000); padding: 15px; position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--gold); }
+        .stats-grid { display: flex; justify-content: space-around; align-items: center; max-width: 500px; margin: 0 auto; cursor: pointer; } /* 增加點擊感 */
+        .exp-bar-bg { background: rgba(0,0,0,0.6); border-radius: 10px; height: 12px; width: 120px; overflow: hidden; border: 1px solid var(--gold); }
+        .exp-bar-fill { background: linear-gradient(90deg, #d4af37, #fff, #d4af37); background-size: 200% 100%; animation: shine 2s infinite linear; height: 100%; width: 0%; transition: width 0.8s ease; }
+        @keyframes shine { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* 全螢幕遮罩通用的樣式 */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 3000; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+
+        /* --- 階級覽表 --- */
+        .rank-list-card { background: var(--card); border: 2px solid var(--gold); border-radius: 20px; width: 85%; max-width: 400px; padding: 25px; position: relative; }
+        .rank-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #333; transition: 0.3s; }
+        .rank-item.active { background: rgba(212, 175, 55, 0.1); border-left: 4px solid var(--gold); }
+        .rank-icon { font-size: 1.5rem; margin-right: 15px; }
+        .rank-info { text-align: left; }
+        .rank-name { color: var(--gold); font-weight: bold; font-size: 1.1rem; }
+        .rank-req { font-size: 0.7rem; color: #888; }
+
+        /* 按鈕與卡片 */
+        .content { display: none; width: 95%; max-width: 500px; margin: 20px 0 120px 0; animation: fadeIn 0.4s; }
+        .content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 15px; border: 1px solid #2a2a2a; }
+        .btn { background: var(--law-red); color: white; border: 1px solid var(--gold); padding: 14px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
+        
+        /* 選單 */
+        .menu-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; max-width: 500px; padding: 12px; background: #111; position: fixed; bottom: 0; border-top: 1px solid var(--gold); z-index: 1000; }
+        .menu-item { text-align: center; color: #666; font-size: 0.65rem; cursor: pointer; }
+        .menu-item.active { color: var(--gold); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="level-up-overlay" class="overlay">
+    <div style="font-family:'Noto Serif TC'; font-size:1.5rem; color:var(--gold);">LEVEL UP</div>
+    <div id="pop-rank" style="font-family:'Noto Serif TC'; font-size:3.5rem; color:#fff; text-shadow:0 0 20px var(--gold); margin:20px 0;">法律素人</div>
+    <p style="color:#aaa; margin-bottom:30px;">新的法律權限已解鎖</p>
+    <button class="btn" style="width:200px;" onclick="closeOverlay('level-up-overlay')">確認晉升</button>
+</div>
+
+<div id="rank-list-overlay" class="overlay" onclick="closeOverlay('rank-list-overlay')">
+    <div class="rank-list-card" onclick="event.stopPropagation()">
+        <h2 style="color:var(--gold); font-family:'Noto Serif TC'; margin-top:0;">⚖️ 法律修煉體系</h2>
+        <div id="rank-items-container">
+            </div>
+        <button class="btn" style="margin-top:20px;" onclick="closeOverlay('rank-list-overlay')">關閉</button>
+    </div>
+</div>
+
+<nav>
+    <div class="stats-grid" onclick="showRankList()">
+        <div style="text-align:center;">
+            <div id="rank-tag" style="font-size:0.6rem; color:var(--gold);">法律素人</div>
+            <div id="lv-num" style="font-size:1.4rem; font-weight:900;">LV.01</div>
+        </div>
+        <div style="flex:1; margin-left:15px;">
+            <div id="exp-label" style="font-size:0.7rem; text-align:right; color:var(--gold);">0 / 100</div>
+            <div class="exp-bar-bg"><div id="exp-fill" class="exp-bar-fill"></div></div>
+        </div>
+    </div>
+</nav>
+
+<div id="p1" class="content active">
+    <div class="card" style="text-align:center;">
+        <h3 style="margin:0; color:#888;">修煉目標：<span id="display-goal">台大法律系</span></h3>
+        <h1 style="color:var(--gold); font-size:3.5rem; margin:15px 0;">D-<span id="dday-num"></span></h1>
+        <p style="font-size:0.8rem;">距離決戰：<span id="display-date">2027-01-16</span></p>
+    </div>
+    <div class="card">
+        <h3>🏛️ 今日核心條文</h3>
+        <div id="case-display" style="font-size:1rem; line-height:1.6; color:#ddd; margin:15px 0; background:#000; padding:12px; border-radius:8px;">點擊領取...</div>
+        <button id="case-btn" class="btn" onclick="getDailyCase()">領取條文 (+5 EXP)</button>
+    </div>
+</div>
+
+<div id="p2" class="content">
+    <div class="card">
+        <h3 style="color:var(--gold);">📌 每日鋼鐵任務 (各 +10 EXP)</h3>
+        <div id="fixed-task-list"></div>
+    </div>
+    <div class="card">
+        <h3>⚔️ 額外加成任務 (+5 EXP)</h3>
+        <div id="task-list"></div>
+        <input type="text" id="t-in" placeholder="新增臨時任務...">
+        <button class="btn" onclick="addTask()">新增</button>
+    </div>
+</div>
+
+<div id="p5" class="content">
+    <div class="card">
+        <h3 style="color:var(--gold);">⚙️ 個人偏好</h3>
+        <label>字體選擇：</label>
+        <select id="font-select" onchange="updateSettings()">
+            <option value="'Noto Serif TC', serif">⚖️ 經典法典</option>
+            <option value="'Noto Sans TC', sans-serif">📱 俐落黑體</option>
+            <option value="'Zhi Mang Xing', cursive">✍️ 隨筆手寫</option>
+        </select>
+        <label style="display:block; margin-top:20px;">目標志願：</label>
+        <input type="text" id="set-goal" oninput="updateSettings()">
+        <label style="display:block; margin-top:10px;">日期設定：</label>
+        <input type="date" id="set-date" onchange="updateSettings()">
+        <button class="btn" style="background:#444; margin-top:40px;" onclick="resetAll()">格式化所有數據</button>
+    </div>
+</div>
+
+<div class="menu-bar">
+    <div class="menu-item active" onclick="tab('p1')">🏠<br>主頁</div>
+    <div class="menu-item" onclick="tab('p2')">⚔️<br>任務</div>
+    <div class="menu-item" style="opacity:0.3">📅<br>課表</div>
+    <div class="menu-item" style="opacity:0.3">✍️<br>筆記</div>
+    <div class="menu-item" onclick="tab('p5')">⚙️<br>設定</div>
+</div>
+
+<script>
+    let state = { 
+        lv: 1, exp: 0, tasks: [], tt: {}, notes: [], 
+        lastCaseDate: "", lastResetDate: "", caseIndex: 0, currentLaw: null,
+        goal: "台大法律系", date: "2027-01-16", font: "'Noto Serif TC', serif",
+        fixedTasks: [
+            { id: 'f1', t: "【法條】精讀今日條文", done: false },
+            { id: 'f2', t: "【英數】完成每日練習", done: false },
+            { id: 'f3', t: "【課業】複習學校重點", done: false },
+            { id: 'f4', t: "【錯題】分析三道錯題", done: false },
+            { id: 'f5', t: "【自律】遠離手機 2 小時", done: false }
+        ]
+    };
+
+    const rankSystem = [
+        { icon: "🌱", name: "法律素人", req: "LV.1 - 剛踏上法學之路" },
+        { icon: "📜", name: "法學新秀", req: "LV.10 - 掌握基本法學緒論" },
+        { icon: "⚖️", name: "法典守護者", req: "LV.20 - 能精準運用六法條文" },
+        { icon: "🛡️", name: "正義辯護人", req: "LV.30 - 邏輯縝密，無懈可擊" },
+        { icon: "🏛️", name: "傳奇大法官", req: "LV.50 - 憲法與正義的化身" }
+    ];
+
+    const lawPedia = [
+        { t: "憲法 第1條", d: "中華民國基於三民主義，為民有民治民享之民主共和國。" },
+        { t: "刑法 第1條", d: "罪刑法定：行為之處罰，以行為時之法律有明文規定者為限。" },
+        { t: "民法 第6條", d: "人之權利能力，始於出生，終於死亡。" }
+    ];
+
+    function init() {
+        const saved = localStorage.getItem("LAW_V17");
+        if(saved) state = JSON.parse(saved);
+        document.getElementById('font-select').value = state.font;
+        document.getElementById('set-goal').value = state.goal;
+        document.getElementById('set-date').value = state.date;
+        applyFont(state.font);
+        checkDailyReset(); renderUI(); renderTasks(); updateDDay();
+    }
+
+    function applyFont(f) { document.getElementById('dynamic-font').innerHTML = `:root { --main-font: ${f}; }`; }
+
+    // --- 顯示階級清單 ---
+    function showRankList() {
+        const currentRankIdx = Math.min(Math.floor(state.lv / 10), 4);
+        const container = document.getElementById('rank-items-container');
+        container.innerHTML = rankSystem.map((r, i) => `
+            <div class="rank-item ${i === currentRankIdx ? 'active' : ''}">
+                <div class="rank-icon">${r.icon}</div>
+                <div class="rank-info">
+                    <div class="rank-name">${r.name} ${i === currentRankIdx ? '⭐' : ''}</div>
+                    <div class="rank-req">${r.req}</div>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('rank-list-overlay').style.display = 'flex';
+    }
+
+    function closeOverlay(id) { document.getElementById(id).style.display = 'none'; }
+
+    function getDailyCase() {
+        state.currentLaw = lawPedia[state.caseIndex % lawPedia.length];
+        state.lastCaseDate = new Date().toDateString();
+        state.caseIndex++;
+        gainExp(5); checkDailyReset(); saveData();
+    }
+
+    function gainExp(amt) {
+        state.exp += amt;
+        let need = Math.floor(100 * Math.pow(1.2, state.lv-1));
+        if(state.exp >= need) {
+            state.exp -= need; state.lv++;
+            showLevelUp();
+        }
+        renderUI(); saveData();
+    }
+
+    function showLevelUp() {
+        const currentRankIdx = Math.min(Math.floor(state.lv / 10), 4);
+        document.getElementById('pop-rank').innerText = rankSystem[currentRankIdx].name;
+        document.getElementById('level-up-overlay').style.display = 'flex';
+    }
+
+    // 基礎功能 (重置、儲存、任務)
+    function checkDailyReset() {
+        const today = new Date().toDateString();
+        const btn = document.getElementById('case-btn');
+        if (state.lastCaseDate === today) {
+            btn.disabled = true; btn.innerText = "今日修煉完畢";
+            if (state.currentLaw) document.getElementById('case-display').innerHTML = `<b style="color:var(--gold);">${state.currentLaw.t}</b><br>${state.currentLaw.d}`;
+        }
+        if (state.lastResetDate !== today) {
+            state.fixedTasks.forEach(t => t.done = false);
+            state.lastResetDate = today; saveData();
+        }
+    }
+
+    function finishFixed(id) {
+        const t = state.fixedTasks.find(x => x.id === id);
+        if(!t.done) { t.done = true; gainExp(10); renderTasks(); }
+    }
+
+    function addTask() {
+        const t = document.getElementById('t-in').value;
+        if(t){ state.tasks.push({id:Date.now(), t}); renderTasks(); saveData(); document.getElementById('t-in').value=""; }
+    }
+
+    function finishTask(id) { state.tasks = state.tasks.filter(x=>x.id!==id); gainExp(5); renderTasks(); }
+
+    function renderTasks() {
+        document.getElementById('fixed-task-list').innerHTML = state.fixedTasks.map(t=>`
+            <div class="fixed-task" style="opacity: ${t.done?0.3:1}">
+                <input type="checkbox" ${t.done?'checked disabled':''} onclick="finishFixed('${t.id}')" style="width:20px; height:20px; margin-right:12px;">
+                <span style="flex:1;">${t.t}</span><b style="color:var(--gold);">+10</b>
+            </div>
+        `).join('');
+        document.getElementById('task-list').innerHTML = state.tasks.map(t=>`
+            <div style="display:flex; padding:12px 0; border-bottom:1px solid #333; align-items:center;">
+                <input type="checkbox" onclick="finishTask(${t.id})" style="width:18px; height:18px; margin-right:12px;">
+                <span style="flex:1;">${t.t}</span><b>+5</b>
+            </div>
+        `).join('');
+    }
+
+    function renderUI() {
+        let need = Math.floor(100 * Math.pow(1.2, state.lv-1));
+        document.getElementById("lv-num").innerText = "LV." + (state.lv<10?'0'+state.lv:state.lv);
+        document.getElementById("exp-fill").style.width = (state.exp/need*100) + "%";
+        document.getElementById("exp-label").innerText = `${state.exp} / ${need}`;
+        document.getElementById("display-goal").innerText = state.goal;
+        const currentRankIdx = Math.min(Math.floor(state.lv / 10), 4);
+        document.getElementById("rank-tag").innerText = rankSystem[currentRankIdx].name;
+    }
+
+    function updateSettings() {
+        state.goal = document.getElementById('set-goal').value || "台大法律系";
+        state.date = document.getElementById('set-date').value || "2027-01-16";
+        state.font = document.getElementById('font-select').value;
+        applyFont(state.font); saveData(); renderUI(); updateDDay();
+    }
+
+    function updateDDay() {
+        const diff = new Date(state.date) - new Date();
+        document.getElementById("dday-num").innerText = Math.max(0, Math.ceil(diff/86400000));
+    }
+
+    function tab(id) {
+        document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    function saveData() { localStorage.setItem("LAW_V17", JSON.stringify(state)); }
+    function resetAll() { if(confirm("確定重置？")) { localStorage.clear(); location.reload(); } }
+    
+    init();
+</script>
+</body>
+</html>

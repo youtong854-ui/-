@@ -1,0 +1,15 @@
+{
+  "name": "116法律修煉 17.0",
+  "short_name": "法律修煉",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#800000",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3439/3439691.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
